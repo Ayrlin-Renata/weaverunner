@@ -5,6 +5,7 @@ import pyautogui
 from pyscreeze import Box
 import pyperclip
 import platform
+import numpy as np
 import os
 from automation.vision import Vision
 from automation.controller import Controller
@@ -42,6 +43,7 @@ class WorkflowManager:
         self.ui_cache = {}
         self.group_header_cache = {}
         self.anchor_box = None
+        self.group_x_positions = []
     
     def find_app_window_and_set_region(self):
         self.vision.log("Attempting to find app anchor 'app_anchor.png'...")
@@ -83,6 +85,7 @@ class WorkflowManager:
     
     def run(self, texture_slots_data, old_texture_map, is_full_run, log_callback=print):
         self.stop_event.clear()
+        self.group_x_positions.clear()
         self.vision.log = log_callback
         self.controller.log = log_callback
         log_callback("Starting automation workflow...")
@@ -319,6 +322,52 @@ class WorkflowManager:
             self.vision.log(f"  - Found '{template_name}' and updated cache '{cache_key}' to {new_cached_region}")
         return location
     
+    def _select_best_group_match(self, matches):
+        """
+        Applies heuristics to a list of potential OCR matches to find the best one.
+        """
+        
+        if not matches:
+            return None
+        predicted_x = None
+        
+        if self.group_x_positions:
+            predicted_x = np.median(self.group_x_positions)
+            self.vision.log(f"  - Applying heuristics with predicted X-indentation: {predicted_x:.0f}")
+        scored_matches = []
+        
+        for match in matches:
+            final_score = match['score']
+            bbox = match['bbox']
+            
+            if predicted_x is not None:
+                x_diff = abs(bbox[0] - predicted_x)
+                penalty = (x_diff / 50.0) * 0.1
+                final_score -= penalty
+                self.vision.log(f"    - Candidate '{match['text']}' at x={bbox[0]}. X-diff penalty: {penalty:.2f}. New score: {final_score:.2f}")
+            arrow_search_region = (int(bbox[0] + bbox[2]), int(bbox[1] - 5), 300, int(bbox[3] + 10))
+            expanded_arrow = self.vision.find_image('group_expanded.png', region=arrow_search_region, confidence=0.7)
+            collapsed_arrow = self.vision.find_image('group_collapsed.png', region=arrow_search_region, confidence=0.7)
+            
+            if expanded_arrow or collapsed_arrow:
+                final_score += 0.5
+                self.vision.log(f"    - Candidate '{match['text']}' has an arrow nearby. Bonus applied. New score: {final_score:.2f}")
+            
+            if final_score > 0:
+                scored_matches.append({'match': match, 'final_score': final_score})
+        
+        if not scored_matches:
+            self.vision.log("  - No candidates survived heuristic filtering.")
+            return None
+        sorted_matches = sorted(scored_matches, key=lambda x: x['final_score'], reverse=True)
+        best_match_info = sorted_matches[0]
+        
+        if best_match_info['final_score'] < 0.7:
+             self.vision.log(f"  - Best candidate '{best_match_info['match']['text']}' has score {best_match_info['final_score']:.2f}, which is below threshold 0.7. Discarding.")
+             return None
+        self.vision.log(f"  - Selected best group match '{best_match_info['match']['text']}' with final score {best_match_info['final_score']:.2f}")
+        return best_match_info['match']
+    
     def _wait_for_element(self, template_name, timeout, cache_key=None, region=None, confidence=0.8):
         """
         Waits for a UI element to appear by repeatedly searching for it until a timeout is reached.
@@ -377,10 +426,16 @@ class WorkflowManager:
             
             for name_to_find in search_names:
                 self.vision.log(f"  - Attempting to find group '{name_to_find}' using OCR.")
-                ocr_bbox = self.vision.find_text_on_screen(name_to_find, region=ocr_region)
+                potential_matches = self.vision.find_text_on_screen(name_to_find, region=ocr_region)
                 
-                if ocr_bbox:
+                if not potential_matches:
+                    continue
+                best_match = self._select_best_group_match(potential_matches)
+                
+                if best_match:
+                    ocr_bbox = best_match['bbox']
                     self.vision.log(f"  - Found a match for '{name_to_find}' via OCR. Caching image for primary name '{group_name}'.")
+                    self.group_x_positions.append(ocr_bbox[0])
                     try:
                         buffer = 2
                         capture_region = (

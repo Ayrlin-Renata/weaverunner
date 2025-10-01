@@ -1,0 +1,90 @@
+{
+    "version": "1.0",
+    "name": "🧥 Hoodie 2T2S1H",
+    "description": "Partial Coverage [Ayr]",
+    "language": "en",
+    "slots": [
+        {
+            "slot_id": 0,
+            "mode": "Managed",
+            "group": "Right Sleeve",
+            "alternate_groups": ["Rightsleeve"],
+            "values": {
+                "size": 1.0,
+                "angle": 0.0,
+                "x_position": 0.5,
+                "y_position": 0.542,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 1,
+            "mode": "Managed",
+            "group": "Torso",
+            "values": {
+                "size": 1.0,
+                "angle": 0.0,
+                "x_position": 0.3785,
+                "y_position": 0.549,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 2,
+            "mode": "Managed",
+            "group": "Left Sleeve",
+            "alternate_groups": ["Leftsleeve"],
+            "values": {
+                "size": 1.0,
+                "angle": 0.0,
+                "x_position": 0.5,
+                "y_position": 0.542,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 3,
+            "mode": "Managed",
+            "group": "Torso",
+            "values": {
+                "size": 1.0,
+                "angle": 0.0,
+                "x_position": 0.651,
+                "y_position": 0.549,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 4,
+            "mode": "Managed",
+            "group": "Hood",
+            "values": {
+                "size": 1.0,
+                "angle": 0.0,
+                "x_position": 0.495,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        }
+    ]
+}

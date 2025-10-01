@@ -214,8 +214,6 @@ class App(ctk.CTk):
         view_menu = self.menu_bar.add_cascade('menu_view')
         view_menu.add_checkbutton(text=self.i18n.t('menu_show_console'), text_key='menu_show_console',
                                   variable=self.show_console_var, command=lambda: self._on_menu_action(self._toggle_console))
-        view_menu.add_checkbutton(text=self.i18n.t('menu_debug_mode'), text_key='menu_debug_mode',
-                                  variable=self.debug_mode_var, command=lambda: self._on_menu_action(self._toggle_debug_mode))
         automation_menu = self.menu_bar.add_cascade('menu_automation')
         automation_menu.add_command(text=self.i18n.t('menu_control_settings'), text_key='menu_control_settings',
                                   command=lambda: self._on_menu_action(self.open_automation_settings))

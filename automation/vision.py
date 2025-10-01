@@ -9,6 +9,7 @@ from PIL import Image
 import screeninfo
 import threading
 import easyocr
+import re
 
 
 class Vision:
@@ -155,11 +156,13 @@ class Vision:
             
             left, top, _, _ = current_region
             try:
-                relative_center = pyscreeze.locateCenter(template_path, haystack_image, confidence=confidence)
+                location_box = pyscreeze.locate(template_path, haystack_image, confidence=confidence)
                 
-                if relative_center:
-                    abs_x = relative_center.x + left
-                    abs_y = relative_center.y + top
+                if location_box:
+                    center_x = location_box.left + location_box.width / 2
+                    center_y = location_box.top + location_box.height / 2
+                    abs_x = center_x + left
+                    abs_y = center_y + top
                     location = pyautogui.Point(int(abs_x), int(abs_y))
                     self.log(f"  - Found '{display_name}' at {location} in region {current_region}")
                     return location
@@ -416,34 +419,47 @@ class Vision:
     
     def find_text_on_screen(self, text_to_find, region=None):
         """
-        Finds text on screen and returns the bounding box of the first match.
+        Finds all potential matches for text on screen, scores them, and returns a list of candidates.
+        Prioritizes exact, whole-word matches.
         """
         
         if not self.reader:
             self.log("OCR reader not available.")
-            return None
+            return []
         self.log(f"Reading text from region: {region or 'Full Screen'}")
         try:
             screenshot = self.screenshot(region=region)
             
             if not screenshot:
                 self.log(f"An error occurred during find_text_on_screen: Failed to get screenshot for region {region}.")
-                return None
+                return []
             screenshot_np = np.array(screenshot)
             results = self.reader.readtext(screenshot_np)
+            potential_matches = []
             
             for (bbox, text, prob) in results:
-                if text_to_find.lower() in text.lower():
-                    self.log(f"  - Found matching text '{text}' with bounding box: {bbox}")
-                    (tl, tr, br, bl) = bbox
-                    left = int(tl[0] + (region[0] if region else 0))
-                    top = int(tl[1] + (region[1] if region else 0))
-                    width = int(tr[0] - tl[0])
-                    height = int(bl[1] - tl[1])
-                    return (left, top, width, height)
+                score = 0
+                
+                if re.search(r'\b' + re.escape(text_to_find) + r'\b', text, re.IGNORECASE):
+                    if text_to_find == text:
+                        score = 1.0
+                    elif text_to_find.lower() == text.lower():
+                        score = 0.95
+                    else:
+                        score = 0.9 - (len(text) - len(text_to_find)) * 0.1
+                    
+                    if score > 0:
+                        self.log(f"  - Found potential match '{text}' for '{text_to_find}' with score {score:.2f}")
+                        (tl, tr, br, bl) = bbox
+                        left = int(tl[0] + (region[0] if region else 0))
+                        top = int(tl[1] + (region[1] if region else 0))
+                        width = int(tr[0] - tl[0])
+                        height = int(bl[1] - tl[1])
+                        potential_matches.append({'score': score, 'bbox': (left, top, width, height), 'text': text})
                 else:
-                    self.log(f"  - Found some text '{text}' with bounding box: {bbox}")
+                    self.log(f"  - Found non-matching text '{text}'")
+            return sorted(potential_matches, key=lambda x: x['score'], reverse=True)
         except (mss.exception.ScreenShotError, AttributeError, Exception) as e:
             self.log(f"An error occurred during find_text_on_screen: {e}")
         
-        return None
+        return []
