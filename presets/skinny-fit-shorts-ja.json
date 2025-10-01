@@ -1,0 +1,91 @@
+{
+    "version": "1.0",
+    "name": "🩳 Skinny Fit Shorts 2W3L",
+    "display_names":{"ja":"🩳 スキニーショートパンツ 2W3L"},
+    "description": "Full Coverage, Max Res Legs [Ayr]",
+    "language": "ja",
+    "slots": [
+        {
+            "slot_id": 0,
+            "mode": "Managed",
+            "group": "両脚",
+            "values": {
+                "size": 0.532,
+                "angle": 0.0,
+                "x_position": 0.3673,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 1,
+            "mode": "Managed",
+            "group": "腰回り",
+            "alternate_groups":["照回り"],
+            "values": {
+                "size": 0.821,
+                "angle": 0.0,
+                "x_position": 0.388,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 2,
+            "mode": "Managed",
+            "group": "両脚",
+            "values": {
+                "size": 0.532,
+                "angle": 0.0,
+                "x_position": 0.5,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 3,
+            "mode": "Managed",
+            "group": "腰回り",
+            "alternate_groups":["照回り"],
+            "values": {
+                "size": 0.775,
+                "angle": 0.0,
+                "x_position": 0.587,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 4,
+            "mode": "Managed",
+            "group": "両脚",
+            "values": {
+                "size": 0.532,
+                "angle": 0.0,
+                "x_position": 0.633,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        }
+    ]
+}

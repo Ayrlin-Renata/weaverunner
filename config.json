@@ -1,0 +1,13 @@
+{
+    "window_geometry": "910x1360+1641+0",
+    "dialog_geometries": {
+        "load_preset_dialog_title": "422x813+1192+109",
+        "save_preset_dialog_title": "397x149+1118+679",
+        "preset_manager_title": "679x833+1123+356",
+        "automation_settings_dialog_title": "480x712+1076+67",
+        "clip_watch_settings_dialog_title": "381x169+156+156"
+    },
+    "clip_watch_layer_name": "full-export-merge",
+    "language": "en",
+    "user_agreement": true
+}

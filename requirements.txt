@@ -1,0 +1,15 @@
+--extra-index-url https://download.pytorch.org/whl/cu121
+customtkinter
+easyocr
+keyboard
+numpy
+opencv-python-headless
+Pillow
+pyautogui
+pyinstaller
+pyinstaller-hooks-contrib
+pyperclip
+screeninfo
+torch
+torchvision
+watchdog
