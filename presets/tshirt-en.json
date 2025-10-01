@@ -1,0 +1,90 @@
+{
+    "version": "1.0",
+    "name": "👕 T-Shirt 2T2S (Logo)",
+    "description": "Full Coverage, Max Res Logo [Ayr]",
+    "language": "en",
+    "slots": [
+        {
+            "slot_id": 0,
+            "mode": "Managed",
+            "group": "Torso",
+            "values": {
+                "size": 0.944,
+                "angle": 0.0,
+                "x_position": 0.6178,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 1,
+            "mode": "Managed",
+            "group": "Left Sleeve",
+            "alternate_groups": ["Leftsleeve"],
+            "values": {
+                "size": 0.818,
+                "angle": 0.0,
+                "x_position": 0.5,
+                "y_position": 0.4268,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 2,
+            "mode": "Managed",
+            "group": "Torso",
+            "values": {
+                "size": 0.944,
+                "angle": 0.0,
+                "x_position": 0.41,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 3,
+            "mode": "Managed",
+            "group": "Right Sleeve",
+            "alternate_groups": ["Rightsleeve"],
+            "values": {
+                "size": 0.818,
+                "angle": 0.0,
+                "x_position": 0.5,
+                "y_position": 0.4268,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 4,
+            "mode": "Managed",
+            "group": "Torso",
+            "values": {
+                "size": 0.5,
+                "angle": 0.0,
+                "x_position": 0.41,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        }
+    ]
+}

@@ -2,6 +2,7 @@ import time
 import threading
 import screeninfo
 import pyautogui
+from pyscreeze import Box
 import pyperclip
 import platform
 import os
@@ -44,13 +45,14 @@ class WorkflowManager:
     
     def find_app_window_and_set_region(self):
         self.vision.log("Attempting to find app anchor 'app_anchor.png'...")
-        template_path = os.path.join(self.assets_path, 'app_anchor.png')
-        self.anchor_box = pyautogui.locateOnScreen(template_path, confidence=0.8)
+        anchor_box_tuple = self.vision.find_image_box('app_anchor.png', confidence=0.8)
         
-        if not self.anchor_box:
+        if not anchor_box_tuple:
             self.vision.log("ERROR: App anchor image not found on any screen.")
             self.vision.app_region = None
+            self.anchor_box = None
             return None
+        self.anchor_box = Box(*anchor_box_tuple)
         anchor_center_x = self.anchor_box.left + self.anchor_box.width // 2
         anchor_center_y = self.anchor_box.top + self.anchor_box.height // 2
         self.vision.log(f"Found anchor box at {self.anchor_box}")
@@ -71,6 +73,9 @@ class WorkflowManager:
     
     def set_language(self, lang_code):
         self.vision.set_language(lang_code)
+    
+    def set_debug_mode(self, enabled):
+        self.vision.set_debug_mode(enabled)
     
     def _check_for_stop(self):
         if self.stop_event.is_set():
@@ -382,11 +387,14 @@ class WorkflowManager:
                             ocr_bbox[0] - buffer, ocr_bbox[1] - buffer,
                             ocr_bbox[2] + buffer * 2, ocr_bbox[3] + buffer * 2
                         )
-                        header_image = pyautogui.screenshot(region=capture_region)
-                        self.group_header_cache[group_name] = header_image
-                        self.vision.log(f"  - Re-locating with newly cached image for precision.")
-                        vision_bbox = self.vision.find_image_box(header_image, region=ocr_region, confidence=0.9)
-                        return vision_bbox if vision_bbox else ocr_bbox
+                        header_image = self.vision.screenshot(region=capture_region)
+                        
+                        if header_image:
+                            self.group_header_cache[group_name] = header_image
+                            self.vision.log(f"  - Re-locating with newly cached image for precision.")
+                            vision_bbox = self.vision.find_image_box(header_image, region=ocr_region, confidence=0.9)
+                            return vision_bbox if vision_bbox else ocr_bbox
+                        self.vision.log(f"  - Warning: Failed to capture image for group '{group_name}'. Using OCR box.")
                     except Exception as e:
                         self.vision.log(f"  - Warning: Could not cache/re-verify image for group '{group_name}'. Using OCR box. Error: {e}")
                         return ocr_bbox

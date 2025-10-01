@@ -9,5 +9,6 @@
     },
     "clip_watch_layer_name": "full-export-merge",
     "language": "en",
-    "user_agreement": true
+    "user_agreement": true,
+    "debug_mode": false
 }

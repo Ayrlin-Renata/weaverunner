@@ -31,6 +31,7 @@ class App(ctk.CTk):
         self.automation_config_manager.load_settings()
         self.lang_var = ctk.StringVar(value="en")
         self.show_console_var = ctk.BooleanVar(value=False)
+        self.debug_mode_var = ctk.BooleanVar(value=False)
         self.user_agreed = False
         self.updated_image_paths = set()
         self.is_first_apply = True
@@ -52,12 +53,16 @@ class App(ctk.CTk):
         self.is_automation_running = False
         self.stop_hotkey_id = None
         self.image_refresh_queue = Queue()
+        self.automation_job_queue = Queue()
+        self.automation_result_queue = Queue()
         self.file_watcher = FileWatcher(self.image_refresh_queue, self.log_to_console)
         self.process_watcher = ProcessWatcher(self.log_to_console)
         self.clip_watcher = ClipWatcher(self.log_to_console)
         self._create_widgets()
         self._process_image_refresh_queue()
         self._retranslate_ui()
+        self.automation_worker_thread = threading.Thread(target=self._automation_worker, daemon=True)
+        self.automation_worker_thread.start()
         
         if show_agreement:
             self.show_user_agreement()
@@ -65,6 +70,7 @@ class App(ctk.CTk):
     def _on_closing(self):
         if self.user_agreed:
             self._save_config()
+        self.automation_job_queue.put(None)
         self.file_watcher.stop()
         self.process_watcher.stop()
         self.clip_watcher.stop()
@@ -86,6 +92,8 @@ class App(ctk.CTk):
                     self.i18n.set_language(lang)
                     self.clip_watch_layer_name = config.get("clip_watch_layer_name", "full-export-merge")
                     self.user_agreed = config.get("user_agreement", False)
+                    self.debug_mode_var.set(config.get("debug_mode", False))
+                    self.workflow_manager.set_debug_mode(self.debug_mode_var.get())
                     return not self.user_agreed
         except (json.JSONDecodeError, FileNotFoundError): pass
         
@@ -116,6 +124,7 @@ class App(ctk.CTk):
             config["language"] = self.lang_var.get()
             config["clip_watch_layer_name"] = self.clip_watch_layer_name
             config["user_agreement"] = self.user_agreed
+            config["debug_mode"] = self.debug_mode_var.get()
             with open('config.json', 'w') as f:
                 json.dump(config, f, indent=4)
         except IOError:
@@ -176,6 +185,26 @@ class App(ctk.CTk):
         self.console = ctk.CTkTextbox(self.console_frame, wrap="word", state="disabled")
         self.console.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="nsew")
     
+    def _automation_worker(self):
+        """
+        A long-running worker thread that waits for and processes automation jobs.
+        Initializes its own instances of thread-sensitive libraries (via Vision properties).
+        """
+        self.log_to_console_safe("Automation worker: Initializing libraries...")
+        _ = self.workflow_manager.vision.sct
+        _ = self.workflow_manager.vision.reader
+        self.log_to_console_safe("Automation worker: Libraries initialized. Ready for jobs.")
+        
+        while True:
+            job = self.automation_job_queue.get()
+            
+            if job is None:
+                self.log_to_console_safe("Automation worker thread shutting down.")
+                break
+            slots_data, texture_map, is_full_run, log_callback = job
+            result = self.workflow_manager.run(slots_data, texture_map, is_full_run, log_callback)
+            self.automation_result_queue.put(result)
+    
     def _create_menu(self):
         self.menu_bar = CustomMenuBar(self, i18n=self.i18n)
         self.menu_bar.grid(row=0, column=0, sticky="ew")
@@ -185,6 +214,8 @@ class App(ctk.CTk):
         view_menu = self.menu_bar.add_cascade('menu_view')
         view_menu.add_checkbutton(text=self.i18n.t('menu_show_console'), text_key='menu_show_console',
                                   variable=self.show_console_var, command=lambda: self._on_menu_action(self._toggle_console))
+        view_menu.add_checkbutton(text=self.i18n.t('menu_debug_mode'), text_key='menu_debug_mode',
+                                  variable=self.debug_mode_var, command=lambda: self._on_menu_action(self._toggle_debug_mode))
         automation_menu = self.menu_bar.add_cascade('menu_automation')
         automation_menu.add_command(text=self.i18n.t('menu_control_settings'), text_key='menu_control_settings',
                                   command=lambda: self._on_menu_action(self.open_automation_settings))
@@ -202,6 +233,9 @@ class App(ctk.CTk):
         else:
             self.console_frame.grid_forget()
             self.grid_rowconfigure(4, weight=0)
+    
+    def _toggle_debug_mode(self):
+        self.workflow_manager.set_debug_mode(self.debug_mode_var.get())
     
     def _on_menu_action(self, action):
         """
@@ -574,16 +608,13 @@ class App(ctk.CTk):
         self.set_status('status_running', level='running')
         self.stop_hotkey_id = keyboard.add_hotkey('esc', self.emergency_stop)
         is_full_run = self.is_first_apply or full_run
-        result_container = [None]
-        thread = threading.Thread(target=lambda: result_container.__setitem__(0, self.workflow_manager.run(slots_data, self.texture_map, is_full_run, self.log_to_console)), daemon=True)
-        thread.start()
-        self.monitor_automation_thread(thread, result_container)
+        job = (slots_data, self.texture_map, is_full_run, self.log_to_console)
+        self.automation_job_queue.put(job)
+        self.monitor_automation_thread()
     
-    def monitor_automation_thread(self, thread, result_container):
-        if thread.is_alive():
-            self.after(100, lambda: self.monitor_automation_thread(thread, result_container))
-        else:
-            result_tuple = result_container[0]
+    def monitor_automation_thread(self):
+        if not self.automation_result_queue.empty():
+            result_tuple = self.automation_result_queue.get()
             status = result_tuple[0] if result_tuple else False
             
             if status is True:
@@ -591,6 +622,8 @@ class App(ctk.CTk):
                 self.updated_image_paths.clear()
                 self.texture_map = result_tuple[1]
             self.automation_finished(status=status)
+        else:
+            self.after(100, self.monitor_automation_thread)
     
     def emergency_stop(self):
         if self.is_automation_running:

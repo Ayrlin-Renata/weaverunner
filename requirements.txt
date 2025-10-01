@@ -2,6 +2,7 @@
 customtkinter
 easyocr
 keyboard
+mss
 numpy
 opencv-python-headless
 Pillow
