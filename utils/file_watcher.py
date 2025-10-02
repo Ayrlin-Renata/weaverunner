@@ -59,47 +59,21 @@ class FileWatcher:
         self.observer = Observer()
         self.watched_files = set()
     
-    def start(self, files_to_watch):
+    def start(self, files_to_watch: set):
         """
-        Starts the monitoring thread if it's not already running.
+        Starts or updates the file watcher with a new list of files.
+        This method is idempotent and handles starting/stopping/reconfiguring.
         """
-        self.update_watched_files(files_to_watch)
+        new_files_set = {f for f in files_to_watch if f and os.path.exists(f)}
         
-        if self.watched_files and not self.observer.is_alive():
-            try:
-                self.observer.start()
-                self.log("File watcher thread started.")
-            except RuntimeError:
-                self.observer = Observer()
-                self.update_watched_files(files_to_watch, force_reschedule=True)
-                self.observer.start()
-                self.log("Recreated and started file watcher thread.")
-    
-    def stop(self):
-        """
-        Stops the monitoring thread if it's running.
-        """
-        
-        if self.observer.is_alive():
-            self.observer.stop()
-            self.observer.join()
-            self.log("File watcher thread stopped.")
-    
-    def update_watched_files(self, files, force_reschedule=False):
-        """
-        Updates the list of files to be monitored, scheduling watches only for
-        the necessary parent directories.
-        """
-        new_files_set = {f for f in files if f and os.path.exists(f)}
-        
-        if new_files_set == self.watched_files and not force_reschedule:
+        if self.observer.is_alive() and new_files_set == self.watched_files:
             return
-        self.watched_files = new_files_set
         
         if self.observer.is_alive():
             self.observer.stop()
             self.observer.join()
-            self.observer = Observer()
+        self.observer = Observer()
+        self.watched_files = new_files_set
         
         if not self.watched_files:
             self.log("No valid files to watch. Watcher is stopped.")
@@ -110,6 +84,17 @@ class FileWatcher:
         for directory in dirs_to_watch:
             self.observer.schedule(event_handler, directory, recursive=False)
             self.log(f"Watching directory: {directory}")
+        self.observer.start()
+        self.log("File watcher thread started.")
+    
+    def stop(self):
+        """
+        Stops the monitoring thread if it's running.
+        """
         
-        if not self.observer.is_alive():
-            self.start(self.watched_files)
+        if self.observer.is_alive():
+            self.observer.stop()
+            self.observer.join()
+            self.log("File watcher thread stopped.")
+        self.observer = Observer()
+        self.watched_files = set()

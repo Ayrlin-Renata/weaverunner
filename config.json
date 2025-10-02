@@ -1,5 +1,5 @@
 {
-    "window_geometry": "1103x1360+1374+6",
+    "window_geometry": "882x1360+1595+6",
     "dialog_geometries": {
         "load_preset_dialog_title": "422x813+1192+109",
         "save_preset_dialog_title": "397x149+1118+679",
@@ -8,7 +8,7 @@
         "clip_watch_settings_dialog_title": "381x169+156+156"
     },
     "clip_watch_layer_name": "full-export-merge",
-    "language": "ja",
+    "language": "en",
     "user_agreement": true,
     "debug_mode": false
 }
