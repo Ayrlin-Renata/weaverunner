@@ -17,7 +17,7 @@ i made this with the intent to increase the convienience of repetitive work for 
 * DO NOT interact with the mouse or keyboard while the automation is running.
 * PRESS ESC to STOP the automation if it begins unintended actions.
 
-**download** [WeaveRunner Beta](https://github.com/Ayrlin-Renata/weaverunner/releases/tag/v0.1.0-beta)
+**download** [WeaveRunner Beta](https://github.com/Ayrlin-Renata/weaverunner/releases)
 
 ## notice
 Holoearth and related assets are property of COVER Corp. This software must be used with discretion. This software contains keyboard and mouse automation. This software contains computer vision algorithms. Use of the software is AT YOUR OWN RISK. The developer(s) are not responsible for any damages caused by use or misuse of the application, intentional or unintentional. 
@@ -47,7 +47,7 @@ Holoearth Creator のワークフローおよび自動化マネージャー。
 * 自動化の実行中は、マウスやキーボードを操作しないでください。
 * 万が一、意図しない動作が始まった場合は、ESCキーを押して自動化を停止してください。
 
-**DL** [WeaveRunner Beta](https://github.com/Ayrlin-Renata/weaverunner/releases/tag/v0.1.0-beta)
+**DL** [WeaveRunner Beta](https://github.com/Ayrlin-Renata/weaverunner/releases)
 
 ## 免責事項
 「ホロアース」および関連する一切の資産は、カバー株式会社に帰属します。  
