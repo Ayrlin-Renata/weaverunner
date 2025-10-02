@@ -1,0 +1,88 @@
+{
+    "version": "1.0",
+    "name": "👗 Pleated Skirt 2W3L",
+    "description": "Full Coverage, Max res Legs [Ayr]",
+    "language": "en",
+    "slots": [
+        {
+            "slot_id": 0,
+            "mode": "Managed",
+            "group": "Legs",
+            "values": {
+                "size": 0.774,
+                "angle": 0.0,
+                "x_position": 0.333,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 1,
+            "mode": "Managed",
+            "group": "Waist",
+            "values": {
+                "size": 1.0,
+                "angle": 0.0,
+                "x_position": 0.362,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 2,
+            "mode": "Managed",
+            "group": "Legs",
+            "values": {
+                "size": 0.774,
+                "angle": 0.0,
+                "x_position": 0.5264,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 3,
+            "mode": "Managed",
+            "group": "Waist",
+            "values": {
+                "size": 1.0,
+                "angle": 0.125,
+                "x_position": 0.629,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        },
+        {
+            "slot_id": 4,
+            "mode": "Managed",
+            "group": "Legs",
+            "values": {
+                "size": 0.774,
+                "angle": 0.0,
+                "x_position": 0.7199,
+                "y_position": 0.5,
+                "opacity": 1.0,
+                "h_flip": false,
+                "v_flip": false,
+                "h_repeat": false,
+                "v_repeat": false
+            }
+        }
+    ]
+}

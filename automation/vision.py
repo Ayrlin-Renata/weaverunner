@@ -4,12 +4,11 @@ from pyscreeze import Box
 import numpy as np
 import pyscreeze
 import os
+import threading
 import mss
 from PIL import Image
 import screeninfo
-import threading
-import easyocr
-import re
+from .ocr import OCR
 
 
 class Vision:
@@ -18,8 +17,10 @@ class Vision:
         self.language = 'en'
         self.app_region = None
         self.log = print
-        self.thread_local = threading.local()
         self.debug_mode = False
+        self.ocr = OCR()
+        self.ocr.log = self.log
+        self.thread_local = threading.local()
     
     @property
     def sct(self):
@@ -28,37 +29,23 @@ class Vision:
         """
         
         if not hasattr(self.thread_local, 'sct') or self.thread_local.sct is None:
-            self.log("Initializing MSS for this thread...")
+            self.log(f"Initializing MSS for thread {threading.get_ident()}...")
             try:
                 self.thread_local.sct = mss.mss()
+                self.log("MSS initialized for this thread.")
             except Exception as e:
                 self.log(f"CRITICAL: Failed to initialize MSS for this thread. Error: {e}")
                 self.thread_local.sct = None
         return self.thread_local.sct
     
-    @property
-    def reader(self):
+    def initialize_dependencies(self):
         """
-        Lazy-loads the EasyOCR reader instance.
-        This is to ensure it's initialized in the same thread that uses it, avoiding
-        potential cross-thread GDI issues on Windows. Uses thread-local storage to
-        maintain a separate reader instance per thread.
+        Initializes thread-sensitive libraries like MSS and EasyOCR.
         """
-        
-        if not hasattr(self.thread_local, 'reader') or self.thread_local.reader is None:
-            self.log("Initializing EasyOCR Reader for this thread...")
-            try:
-                self.thread_local.reader = easyocr.Reader(['en', 'ja'], gpu=True)
-                self.log("EasyOCR Reader initialized with GPU support.")
-            except Exception as e:
-                self.log(f"WARNING: Could not initialize EasyOCR with GPU support. Falling back to CPU. Error: {e}")
-                try:
-                    self.thread_local.reader = easyocr.Reader(['en', 'ja'], gpu=False)
-                    self.log("EasyOCR Reader initialized with CPU support.")
-                except Exception as e2:
-                    self.log(f"CRITICAL: Failed to initialize EasyOCR on CPU as well. Error: {e2}")
-                    self.thread_local.reader = None
-        return self.thread_local.reader
+        self.log("Initializing Vision dependencies for this thread...")
+        _ = self.sct
+        _ = self.ocr.reader
+        self.log("Vision dependencies initialized.")
     
     def set_language(self, lang_code):
         self.language = lang_code
@@ -400,10 +387,6 @@ class Vision:
         """
         Reads text from a specific region of the screen.
         """
-        
-        if not self.reader:
-            self.log("OCR reader not available.")
-            return ""
         try:
             screenshot = self.screenshot(region=region)
             
@@ -411,21 +394,15 @@ class Vision:
                 self.log(f"An error occurred during OCR: Failed to get screenshot for region {region}.")
                 return ""
             screenshot_np = np.array(screenshot)
-            result = self.reader.readtext(screenshot_np)
-            return " ".join([item[1] for item in result])
+            return self.ocr.get_text_from_image(screenshot_np)
         except (mss.exception.ScreenShotError, AttributeError, Exception) as e:
             self.log(f"An error occurred during OCR: {e}")
             return ""
     
     def find_text_on_screen(self, text_to_find, region=None):
         """
-        Finds all potential matches for text on screen, scores them, and returns a list of candidates.
-        Prioritizes exact, whole-word matches.
+        Finds text on screen by taking a screenshot and passing it to the OCR module.
         """
-        
-        if not self.reader:
-            self.log("OCR reader not available.")
-            return []
         self.log(f"Reading text from region: {region or 'Full Screen'}")
         try:
             screenshot = self.screenshot(region=region)
@@ -434,32 +411,9 @@ class Vision:
                 self.log(f"An error occurred during find_text_on_screen: Failed to get screenshot for region {region}.")
                 return []
             screenshot_np = np.array(screenshot)
-            results = self.reader.readtext(screenshot_np)
-            potential_matches = []
-            
-            for (bbox, text, prob) in results:
-                score = 0
-                
-                if re.search(r'\b' + re.escape(text_to_find) + r'\b', text, re.IGNORECASE):
-                    if text_to_find == text:
-                        score = 1.0
-                    elif text_to_find.lower() == text.lower():
-                        score = 0.95
-                    else:
-                        score = 0.9 - (len(text) - len(text_to_find)) * 0.1
-                    
-                    if score > 0:
-                        self.log(f"  - Found potential match '{text}' for '{text_to_find}' with score {score:.2f}")
-                        (tl, tr, br, bl) = bbox
-                        left = int(tl[0] + (region[0] if region else 0))
-                        top = int(tl[1] + (region[1] if region else 0))
-                        width = int(tr[0] - tl[0])
-                        height = int(bl[1] - tl[1])
-                        potential_matches.append({'score': score, 'bbox': (left, top, width, height), 'text': text})
-                else:
-                    self.log(f"  - Found non-matching text '{text}'")
-            return sorted(potential_matches, key=lambda x: x['score'], reverse=True)
+            region_offset = (region[0], region[1]) if region else (0, 0)
+            matches = self.ocr.find_text_in_image(screenshot_np, text_to_find, region_offset)
+            return matches
         except (mss.exception.ScreenShotError, AttributeError, Exception) as e:
             self.log(f"An error occurred during find_text_on_screen: {e}")
-        
-        return []
+            return []

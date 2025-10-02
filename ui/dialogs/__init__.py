@@ -1,0 +1,6 @@
+from .base_dialog import BaseDialog
+from .automation_settings_dialog import AutomationSettingsDialog
+from .clip_watch_settings_dialog import ClipWatchSettingsDialog
+from .language_names_dialog import LanguageNamesDialog
+from .preset_manager_dialog import PresetManagerDialog
+from .user_agreement_dialog import UserAgreementDialog
