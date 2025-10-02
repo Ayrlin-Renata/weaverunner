@@ -5,10 +5,11 @@ class CustomDropdownMenu(ctk.CTkFrame):
     """
     The dropdown box that appears when a menu button is clicked.
     """
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, menubar, **kwargs):
         super().__init__(master, corner_radius=6, border_width=1, border_color="gray40", **kwargs)
         self.grid_columnconfigure(0, weight=1)
         self._items = []
+        self.menubar = menubar
         self._row = 0
     
     def add_item(self, widget_class, **kwargs):
@@ -20,6 +21,13 @@ class CustomDropdownMenu(ctk.CTkFrame):
             "hover_color": "gray25"
         }
         text_key = kwargs.pop('text_key', None)
+        original_command = kwargs.pop('command', None)
+        
+        def item_command(*args):
+            self.menubar._close_active_menu()
+            if original_command:
+                original_command(*args)
+        item_kwargs['command'] = item_command
         item_kwargs.update(kwargs)
         item = widget_class(self, **item_kwargs)
         
@@ -57,7 +65,6 @@ class CustomMenuBar(ctk.CTkFrame):
         self._dropdowns = {}
         self._active_dropdown = None
         self._col = 0
-        self.winfo_toplevel().bind("<Button-1>", self._on_click_outside, add="+")
         self.winfo_toplevel().bind("<Escape>", self._on_escape, add="+")
     
     def add_cascade(self, label_key):
@@ -73,7 +80,7 @@ class CustomMenuBar(ctk.CTkFrame):
         )
         button.label_key = label_key
         button.grid(row=0, column=self._col, sticky="w")
-        dropdown = CustomDropdownMenu(self.winfo_toplevel())
+        dropdown = CustomDropdownMenu(self.winfo_toplevel(), menubar=self)
         button.configure(command=lambda b=button: self._toggle_menu(b))
         self._menu_buttons.append(button)
         self._dropdowns[button] = dropdown
@@ -95,21 +102,13 @@ class CustomMenuBar(ctk.CTkFrame):
         place_y = self.winfo_y() + self.winfo_height()
         dropdown.place(x=place_x, y=place_y)
         dropdown.lift()
+        dropdown.grab_set()
     
     def _close_active_menu(self):
         if self._active_dropdown:
+            self._active_dropdown.grab_release()
             self._active_dropdown.place_forget()
             self._active_dropdown = None
-    
-    def _on_click_outside(self, event):
-        widget = self.winfo_containing(event.x_root, event.y_root)
-        
-        if widget:
-            while widget:
-                if widget in self._menu_buttons or isinstance(widget, CustomDropdownMenu):
-                    return
-                widget = widget.master
-        self._close_active_menu()
     
     def _on_escape(self, event):
         self._close_active_menu()
