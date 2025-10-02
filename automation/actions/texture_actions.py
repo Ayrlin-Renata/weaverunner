@@ -29,7 +29,7 @@ def manage_textures(manager, slots_to_manage):
             if group_header_coords:
                 manager._check_for_stop()
                 upload_texture_to_group(manager, group_header_coords, slot_data['image_path'])
-                time.sleep(AutomationSettings.POST_UPLOAD_FINISH_DELAY)
+                manager._interruptible_sleep(AutomationSettings.POST_UPLOAD_FINISH_DELAY)
                 manager._check_for_stop()
                 apply_texture_settings(manager, slot_data['values'], is_last_slot=is_last_slot)
                 group = slot_data['group']
@@ -77,8 +77,8 @@ def upload_texture_to_group(manager, group_header_coords, image_path):
     manager.controller.click(upload_button_coords)
     choose_file_coords = manager._wait_for_element('choose_file_button.png', timeout=AutomationSettings.CHOOSE_FILE_TIMEOUT)
     manager.controller.click(choose_file_coords)
-    time.sleep(AutomationSettings.POST_UPLOAD_DIALOG_DELAY)
-    manager.vision.log(f"  - Waiting {AutomationSettings.POST_UPLOAD_DIALOG_DELAY} seconds for dialog to appear.")
+    manager._interruptible_sleep(AutomationSettings.POST_UPLOAD_DIALOG_DELAY)
+    manager.vision.log(f"  - Waited {AutomationSettings.POST_UPLOAD_DIALOG_DELAY} seconds for dialog to appear.")
     real_path = os.path.realpath(image_path)
     manager.vision.log("  - Using robust clipboard paste for file path.")
     original_clipboard = None
@@ -87,7 +87,7 @@ def upload_texture_to_group(manager, group_header_coords, image_path):
         pyperclip.copy(real_path)
         paste_key = "command" if platform.system() == "Darwin" else "ctrl"
         manager.controller.hotkey(paste_key, 'v')
-        time.sleep(AutomationSettings.POST_PASTE_DELAY)
+        manager._interruptible_sleep(AutomationSettings.POST_PASTE_DELAY)
         manager.controller.press('enter')
     except Exception as e:
         manager.vision.log(f"  - Clipboard paste method failed: {e}. Falling back to slower typing method.")

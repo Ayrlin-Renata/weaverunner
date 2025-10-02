@@ -64,6 +64,7 @@ class WorkflowManager:
         self.group_x_positions.clear()
         self.vision.log = log_callback
         self.controller.log = log_callback
+        self.controller.stop_event = self.stop_event
         
         if is_full_run:
             log_callback("Full Apply detected. Clearing group header image cache.")
@@ -97,6 +98,19 @@ class WorkflowManager:
             import traceback
             traceback.print_exc()
             return (False, old_texture_map)
+    
+    def _interruptible_sleep(self, duration):
+        """
+        A sleep that can be interrupted by the stop event in small intervals.
+        """
+        end_time = time.time() + duration
+        
+        while time.time() < end_time:
+            self._check_for_stop()
+            remaining = end_time - time.time()
+            
+            if remaining > 0:
+                time.sleep(min(0.05, remaining))
     
     def _find_image_with_cache(self, template_name, cache_key, region=None, confidence=0.8):
         """

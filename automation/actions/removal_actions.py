@@ -49,7 +49,7 @@ def process_removals_full(manager, slots_data):
             for coords in reversed(coords_to_remove):
                 manager._check_for_stop()
                 texture_actions.remove_texture(manager, coords)
-                time.sleep(AutomationSettings.POST_REMOVAL_DELAY)
+                manager._interruptible_sleep(AutomationSettings.POST_REMOVAL_DELAY)
         else:
             manager.vision.log("  - No removals needed for this group based on 'Ignored' slots.")
 
@@ -108,6 +108,6 @@ def process_removals_fast(manager, slots_data, old_texture_map):
             for coords in reversed(coords_to_remove):
                 manager._check_for_stop()
                 texture_actions.remove_texture(manager, coords)
-                time.sleep(AutomationSettings.POST_REMOVAL_DELAY)
+                manager._interruptible_sleep(AutomationSettings.POST_REMOVAL_DELAY)
             removed_slots_by_group[group_name] = slots_to_remove_ids
     return removed_slots_by_group

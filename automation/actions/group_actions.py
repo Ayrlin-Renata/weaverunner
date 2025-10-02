@@ -114,7 +114,7 @@ def find_and_expand_group(manager, group_name, slots_for_group=None):
             pyautogui.moveTo(ocr_region[0] + 150, ocr_region[1] + 200, duration=0.2)
         
         for _ in range(5):
-            manager.controller.scroll(-200); time.sleep(AutomationSettings.SCROLL_DELAY)
+            manager.controller.scroll(-200); manager._interruptible_sleep(AutomationSettings.SCROLL_DELAY)
             group_header = attempt_to_find_header()
             
             if group_header: break
