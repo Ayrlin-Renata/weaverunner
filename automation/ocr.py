@@ -1,7 +1,19 @@
 import threading
 import easyocr
-import re
 import numpy as np
+from difflib import SequenceMatcher
+
+
+def _contains_cjk(text):
+    """
+    Checks if a string contains CJK (Chinese, Japanese, Korean) characters.
+    """
+    return any(
+        0x4E00 <= ord(char) <= 0x9FFF or
+        0x3040 <= ord(char) <= 0x309F or
+        0x30A0 <= ord(char) <= 0x30FF
+        for char in text
+    )
 
 
 class OCR:
@@ -60,22 +72,38 @@ class OCR:
         
         if not self.reader:
             self.log("OCR reader not available.")
-            return []
+            return [], []
         results = self.reader.readtext(image_np)
+        all_found_texts = [item[1] for item in results]
+        
+        if all_found_texts:
+            self.log(f"  - OCR found text candidates: [{', '.join(all_found_texts)}]")
+        else:
+            self.log("  - OCR found no text in the region.")
         potential_matches = []
+        non_candidates = []
+        SIMILARITY_THRESHOLD = 0.6
         
         for (bbox, text, prob) in results:
-            score = 0
+            is_substring = text_to_find.lower() in text.lower()
+            similarity = SequenceMatcher(None, text_to_find.lower(), text.lower()).ratio()
             
-            if re.search(r'\b' + re.escape(text_to_find) + r'\b', text, re.IGNORECASE):
-                score = 1.0 if text_to_find == text else 0.95 if text_to_find.lower() == text.lower() else 0.9 - (len(text) - len(text_to_find)) * 0.1
+            if is_substring or similarity >= SIMILARITY_THRESHOLD:
+                if text_to_find.lower() == text.lower():
+                    score = 1.0
+                elif is_substring:
+                    score = 0.95 - (len(text) - len(text_to_find)) * 0.05
+                else:
+                    score = similarity * 0.9
                 
-                if score > 0:
-                    self.log(f"  - Found potential match '{text}' for '{text_to_find}' with score {score:.2f}")
+                if score > 0.5:
+                    self.log(f"  - Found potential match '{text}' for '{text_to_find}' (Similarity: {similarity:.2f}, Score: {score:.2f})")
                     (tl, tr, br, bl) = bbox
                     left = int(tl[0] + region_offset[0])
                     top = int(tl[1] + region_offset[1])
                     width = int(tr[0] - tl[0])
                     height = int(bl[1] - tl[1])
                     potential_matches.append({'score': score, 'bbox': (left, top, width, height), 'text': text})
-        return sorted(potential_matches, key=lambda x: x['score'], reverse=True)
+            else:
+                non_candidates.append({'bbox': bbox, 'text': text, 'prob': prob})
+        return sorted(potential_matches, key=lambda x: x['score'], reverse=True), non_candidates

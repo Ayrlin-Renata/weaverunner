@@ -21,22 +21,80 @@ def find_and_expand_group(manager, group_name, slots_for_group=None):
     ocr_region = None
     
     if manager.anchor_box and manager.vision.app_region:
-        ocr_left = manager.anchor_box.left
-        ocr_top = manager.anchor_box.top + manager.anchor_box.height
-        ocr_width = manager.anchor_box.width * 2.5
+        ocr_left = manager.anchor_box.left + manager.anchor_box.width * 0.25
+        ocr_top = manager.anchor_box.top + manager.anchor_box.height * 3
+        ocr_width = manager.anchor_box.width * 1.5
         ocr_height = manager.vision.app_region[3] - ocr_top
         ocr_region = (int(ocr_left), int(ocr_top), int(ocr_width), int(ocr_height))
     def attempt_to_find_header():
+        def _process_and_cache_match(best_match, method_name):
+            ocr_bbox = best_match['bbox']
+            manager.vision.log(f"  - Found a match for '{best_match['text']}' via {method_name}. Caching image for primary name '{group_name}'.")
+            manager.group_x_positions.append(ocr_bbox[0])
+            try:
+                buffer = 2
+                capture_region = (
+                    ocr_bbox[0] - buffer, ocr_bbox[1] - buffer,
+                    ocr_bbox[2] + buffer * 2, ocr_bbox[3] + buffer * 2
+                )
+                header_image = manager.vision.screenshot(region=capture_region)
+                
+                if header_image:
+                    manager.group_header_cache[group_name] = header_image
+                    manager.vision.log(f"  - Re-locating with newly cached image for precision.")
+                    vision_bbox = manager.vision.find_image_box(header_image, region=ocr_region, confidence=0.9)
+                    return vision_bbox if vision_bbox else ocr_bbox
+                manager.vision.log(f"  - Warning: Failed to capture image for group '{group_name}'. Using OCR box.")
+            except Exception as e:
+                manager.vision.log(f"  - Warning: Could not cache/re-verify image for group '{group_name}'. Using OCR box. Error: {e}")
+            
+            return ocr_bbox
         cached_image = manager.group_header_cache.get(group_name)
         
         if cached_image:
             manager.vision.log(f"  - Attempting to find group '{group_name}' using cached image.")
-            location = manager.vision.find_image_box(cached_image, region=ocr_region, confidence=0.9)
+            location = manager.vision.find_image_box(cached_image, region=ocr_region, confidence=0.95)
             
             if location:
                 manager.vision.log(f"  - Found group '{group_name}' via cached image.")
                 return location
-            manager.vision.log(f"  - Cached image for '{group_name}' not found. Falling back to OCR.")
+            manager.vision.log(f"  - Cached image for '{group_name}' not found. Falling back to other methods.")
+        manager.vision.log("  - Trying targeted OCR strategy based on group icons.")
+        expanded_arrows = manager.vision.find_all_images('group_expanded.png', region=ocr_region, confidence=0.8)
+        collapsed_arrows = manager.vision.find_all_images('group_collapsed.png', region=ocr_region, confidence=0.8)
+        all_arrows = sorted(expanded_arrows + collapsed_arrows, key=lambda p: p.y)
+        
+        if all_arrows:
+            manager.vision.log(f"  - Found {len(all_arrows)} group icons to target.")
+            all_potential_matches = []
+            
+            for arrow_pos in all_arrows:
+                target_ocr_width = 300
+                target_ocr_height = 30
+                target_ocr_left = arrow_pos.x - target_ocr_width
+                target_ocr_top = arrow_pos.y - (target_ocr_height / 2)
+                targeted_region = (
+                    int(max(ocr_region[0], target_ocr_left)),
+                    int(max(ocr_region[1], target_ocr_top)),
+                    int(target_ocr_width),
+                    int(target_ocr_height)
+                )
+                
+                for name_to_find in search_names:
+                    potential_matches = manager.vision.find_text_on_screen(name_to_find, region=targeted_region)
+                    
+                    if potential_matches:
+                        all_potential_matches.extend(potential_matches)
+            
+            if all_potential_matches:
+                manager.vision.log(f"  - Targeted OCR found {len(all_potential_matches)} potential matches across all icons.")
+                best_match = manager._select_best_group_match(all_potential_matches)
+                
+                if best_match:
+                    return _process_and_cache_match(best_match, "targeted OCR")
+        else:
+            manager.vision.log("  - No group icons found for targeted OCR.")
+        manager.vision.log("  - Targeted OCR failed. Falling back to wide-area OCR.")
         
         for name_to_find in search_names:
             manager.vision.log(f"  - Attempting to find group '{name_to_find}' using OCR.")
@@ -47,32 +105,13 @@ def find_and_expand_group(manager, group_name, slots_for_group=None):
             best_match = manager._select_best_group_match(potential_matches)
             
             if best_match:
-                ocr_bbox = best_match['bbox']
-                manager.vision.log(f"  - Found a match for '{name_to_find}' via OCR. Caching image for primary name '{group_name}'.")
-                manager.group_x_positions.append(ocr_bbox[0])
-                try:
-                    buffer = 2
-                    capture_region = (
-                        ocr_bbox[0] - buffer, ocr_bbox[1] - buffer,
-                        ocr_bbox[2] + buffer * 2, ocr_bbox[3] + buffer * 2
-                    )
-                    header_image = manager.vision.screenshot(region=capture_region)
-                    
-                    if header_image:
-                        manager.group_header_cache[group_name] = header_image
-                        manager.vision.log(f"  - Re-locating with newly cached image for precision.")
-                        vision_bbox = manager.vision.find_image_box(header_image, region=ocr_region, confidence=0.9)
-                        return vision_bbox if vision_bbox else ocr_bbox
-                    manager.vision.log(f"  - Warning: Failed to capture image for group '{group_name}'. Using OCR box.")
-                except Exception as e:
-                    manager.vision.log(f"  - Warning: Could not cache/re-verify image for group '{group_name}'. Using OCR box. Error: {e}")
-                    return ocr_bbox
+                return _process_and_cache_match(best_match, "wide-area OCR")
         return None
     group_header = attempt_to_find_header()
     
     if not group_header:
         if ocr_region:
-            pyautogui.moveTo(ocr_region[0] + 200, ocr_region[1] + 200, duration=0.2)
+            pyautogui.moveTo(ocr_region[0] + 150, ocr_region[1] + 200, duration=0.2)
         
         for _ in range(5):
             manager.controller.scroll(-200); time.sleep(AutomationSettings.SCROLL_DELAY)

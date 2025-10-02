@@ -7,6 +7,7 @@ import os
 import threading
 import mss
 from PIL import Image
+from PIL import Image, ImageDraw
 import screeninfo
 from .ocr import OCR
 
@@ -412,8 +413,48 @@ class Vision:
                 return []
             screenshot_np = np.array(screenshot)
             region_offset = (region[0], region[1]) if region else (0, 0)
-            matches = self.ocr.find_text_in_image(screenshot_np, text_to_find, region_offset)
-            return matches
+            matches, non_candidates = self.ocr.find_text_in_image(screenshot_np, text_to_find, region_offset)
+            
+            if matches:
+                return matches
+            self.log(f"  - No direct match for '{text_to_find}'. Trying progressive redaction strategy.")
+            
+            if not non_candidates:
+                self.log("  - No non-candidates to redact. Aborting strategy.")
+                return []
+            non_candidates.sort(key=lambda x: x['prob'])
+            num_steps = 5
+            num_to_redact_per_step = len(non_candidates) // num_steps or 1
+            modified_screenshot_pil = screenshot.copy()
+            draw = ImageDraw.Draw(modified_screenshot_pil)
+            
+            for i in range(num_steps):
+                start_index = i * num_to_redact_per_step
+                end_index = (i + 1) * num_to_redact_per_step
+                redaction_chunk = non_candidates[start_index:end_index]
+                
+                if not redaction_chunk:
+                    break
+                
+                for item in redaction_chunk:
+                    (tl, tr, br, bl) = item['bbox']
+                    draw.polygon([tuple(tl), tuple(tr), tuple(br), tuple(bl)], fill='black')
+                self.log(f"  - Redaction attempt {i+1}/{num_steps}: Redacted {len(redaction_chunk)} non-candidate texts.")
+                
+                if self.debug_mode:
+                    project_root = os.path.abspath(os.path.join(self.assets_path, "..", ".."))
+                    debug_dir = os.path.join(project_root, 'debug')
+                    os.makedirs(debug_dir, exist_ok=True)
+                    safe_text = "".join(c for c in text_to_find if c.isalnum())
+                    modified_screenshot_pil.save(os.path.join(debug_dir, f"redacted_{safe_text}_step_{i+1}.png"))
+                modified_screenshot_np = np.array(modified_screenshot_pil)
+                matches, _ = self.ocr.find_text_in_image(modified_screenshot_np, text_to_find, region_offset)
+                
+                if matches:
+                    self.log(f"  - Found match for '{text_to_find}' after redaction.")
+                    return matches
+            self.log("  - Progressive redaction failed to find a match.")
+            return []
         except (mss.exception.ScreenShotError, AttributeError, Exception) as e:
             self.log(f"An error occurred during find_text_on_screen: {e}")
             return []

@@ -64,6 +64,10 @@ class WorkflowManager:
         self.group_x_positions.clear()
         self.vision.log = log_callback
         self.controller.log = log_callback
+        
+        if is_full_run:
+            log_callback("Full Apply detected. Clearing group header image cache.")
+            self.group_header_cache.clear()
         log_callback("Starting automation workflow...")
         try:
             removed_slots_by_group = {}

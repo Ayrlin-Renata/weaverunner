@@ -78,6 +78,7 @@ def upload_texture_to_group(manager, group_header_coords, image_path):
     choose_file_coords = manager._wait_for_element('choose_file_button.png', timeout=AutomationSettings.CHOOSE_FILE_TIMEOUT)
     manager.controller.click(choose_file_coords)
     time.sleep(AutomationSettings.POST_UPLOAD_DIALOG_DELAY)
+    manager.vision.log(f"  - Waiting {AutomationSettings.POST_UPLOAD_DIALOG_DELAY} seconds for dialog to appear.")
     real_path = os.path.realpath(image_path)
     manager.vision.log("  - Using robust clipboard paste for file path.")
     original_clipboard = None
