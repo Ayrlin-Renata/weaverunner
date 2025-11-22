@@ -82,18 +82,14 @@ class Controller:
         Presses and holds a key down.
         """
         self.log(f"  - Key down: '{key}'")
-        self._check_stop()
         pyautogui.keyDown(key)
-        self._interruptible_sleep(self.action_delay)
     
     def key_up(self, key):
         """
         Releases a key.
         """
         self.log(f"  - Key up: '{key}'")
-        self._check_stop()
         pyautogui.keyUp(key)
-        self._interruptible_sleep(self.action_delay)
     
     def scroll(self, amount, x=None, y=None):
         """

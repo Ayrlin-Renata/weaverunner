@@ -84,11 +84,27 @@ def upload_texture_to_group(manager, group_header_coords, image_path):
     original_clipboard = None
     try:
         original_clipboard = pyperclip.paste()
+        manager.vision.log(f"  - Attempting to copy '{real_path}' to clipboard.")
         pyperclip.copy(real_path)
+        
+        # Verification loop to ensure clipboard has the correct content
+        max_wait = 2.0
+        start_time = time.time()
+        while time.time() - start_time < max_wait:
+            if pyperclip.paste() == real_path:
+                manager.vision.log("  - Clipboard content verified.")
+                break
+            manager._interruptible_sleep(0.05)
+        else:
+            raise UIVisibilityError("Failed to verify clipboard content after 2s.")
+
         paste_key = "command" if platform.system() == "Darwin" else "ctrl"
-        manager.controller.hotkey(paste_key, 'v')
+        manager.vision.log(f"  - Performing robust paste action (holding '{paste_key}' and pressing 'v').")
+        manager.controller.key_down(paste_key)
+        manager.controller.press('v')
+        manager.controller.key_up(paste_key)
         manager._interruptible_sleep(AutomationSettings.POST_PASTE_DELAY)
-        manager.controller.press('enter')
+        manager.controller.press('enter') # Confirms the file selection in the dialog
     except Exception as e:
         manager.vision.log(f"  - Clipboard paste method failed: {e}. Falling back to slower typing method.")
         manager.controller.write(real_path, interval=0.01)

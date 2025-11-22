@@ -1,18 +1,18 @@
 {
     "version": "1.0",
-    "name": "🩳 Skinny Fit Shorts 2W3L",
-    "description": "Full Coverage, Max Res Legs [Ayr]",
+    "name": "👕 Oversize T-Shirt 3T2S",
+    "description": "Partial Coverage, Repeat [Ayr]",
     "language": "en",
     "slots": [
         {
             "slot_id": 0,
             "mode": "Managed",
-            "group": "Legs",
+            "group": "Torso",
             "values": {
-                "size": 0.532,
+                "size": 1.0,
                 "angle": 0.0,
-                "x_position": 0.3673,
-                "y_position": 0.5,
+                "x_position": 0.386,
+                "y_position": 0.557,
                 "opacity": 1.0,
                 "h_flip": false,
                 "v_flip": false,
@@ -23,28 +23,28 @@
         {
             "slot_id": 1,
             "mode": "Managed",
-            "group": "Waist",
+            "group": "Left Sleeve",
             "values": {
-                "size": 0.821,
+                "size": 1.0,
                 "angle": 0.0,
-                "x_position": 0.3878,
-                "y_position": 0.5,
+                "x_position": 0.5,
+                "y_position": 0.45,
                 "opacity": 1.0,
                 "h_flip": false,
                 "v_flip": false,
-                "h_repeat": false,
+                "h_repeat": true,
                 "v_repeat": false
             }
         },
         {
             "slot_id": 2,
             "mode": "Managed",
-            "group": "Legs",
+            "group": "Torso",
             "values": {
-                "size": 0.532,
+                "size": 1.0,
                 "angle": 0.0,
-                "x_position": 0.5,
-                "y_position": 0.5,
+                "x_position": 0.636,
+                "y_position": 0.557,
                 "opacity": 1.0,
                 "h_flip": false,
                 "v_flip": false,
@@ -55,32 +55,32 @@
         {
             "slot_id": 3,
             "mode": "Managed",
-            "group": "Waist",
+            "group": "Right Sleeve",
             "values": {
-                "size": 0.775,
+                "size": 1.0,
                 "angle": 0.0,
-                "x_position": 0.587,
-                "y_position": 0.5,
+                "x_position": 0.5,
+                "y_position": 0.45,
                 "opacity": 1.0,
                 "h_flip": false,
                 "v_flip": false,
-                "h_repeat": false,
+                "h_repeat": true,
                 "v_repeat": false
             }
         },
         {
             "slot_id": 4,
             "mode": "Managed",
-            "group": "Legs",
+            "group": "Torso",
             "values": {
-                "size": 0.532,
+                "size": 1.0,
                 "angle": 0.0,
-                "x_position": 0.633,
-                "y_position": 0.5,
+                "x_position": 0.5,
+                "y_position": 0.442,
                 "opacity": 1.0,
                 "h_flip": false,
                 "v_flip": false,
-                "h_repeat": false,
+                "h_repeat": true,
                 "v_repeat": false
             }
         }
