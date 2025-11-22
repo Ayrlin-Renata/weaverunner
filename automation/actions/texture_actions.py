@@ -56,7 +56,25 @@ def remove_texture(manager, texture_item_coords):
     if not more_button_coords:
         raise UIVisibilityError(f"Could not find 'more' button for texture at {texture_item_coords}")
     manager.controller.click(more_button_coords)
-    remove_button = manager._wait_for_element('remove_button.png', timeout=AutomationSettings.MENU_TIMEOUT)
+
+    # Optimization: Search for the remove button in a smaller, targeted region first, using the cache.
+    remove_menu_region = (
+        int(more_button_coords.x - 75),
+        int(more_button_coords.y - 20),
+        200,
+        150
+    )
+    manager.vision.log(f"Remove button search region: {remove_menu_region}")
+    remove_button = manager._wait_for_element(
+        'remove_button.png',
+        timeout=AutomationSettings.MENU_TIMEOUT,
+        region=remove_menu_region,
+        cache_key='remove_button_context_menu'
+    )
+
+    if not remove_button:
+        raise UIVisibilityError(f"Could not find 'remove' button after clicking 'more' at {more_button_coords}")
+
     manager.controller.click(remove_button)
     confirm_button = manager._wait_for_element(
         'remove_confirm_button.png',
