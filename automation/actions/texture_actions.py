@@ -57,7 +57,6 @@ def remove_texture(manager, texture_item_coords):
         raise UIVisibilityError(f"Could not find 'more' button for texture at {texture_item_coords}")
     manager.controller.click(more_button_coords)
 
-    # Optimization: Search for the remove button in a smaller, targeted region first, using the cache.
     remove_menu_region = (
         int(more_button_coords.x - 75),
         int(more_button_coords.y - 20),
@@ -105,7 +104,6 @@ def upload_texture_to_group(manager, group_header_coords, image_path):
         manager.vision.log(f"  - Attempting to copy '{real_path}' to clipboard.")
         pyperclip.copy(real_path)
         
-        # Verification loop to ensure clipboard has the correct content
         max_wait = 2.0
         start_time = time.time()
         while time.time() - start_time < max_wait:
@@ -122,7 +120,7 @@ def upload_texture_to_group(manager, group_header_coords, image_path):
         manager.controller.press('v')
         manager.controller.key_up(paste_key)
         manager._interruptible_sleep(AutomationSettings.POST_PASTE_DELAY)
-        manager.controller.press('enter') # Confirms the file selection in the dialog
+        manager.controller.press('enter')
     except Exception as e:
         manager.vision.log(f"  - Clipboard paste method failed: {e}. Falling back to slower typing method.")
         manager.controller.write(real_path, interval=0.01)
