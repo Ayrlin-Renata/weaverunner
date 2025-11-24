@@ -1,88 +1,88 @@
 {
-    "version": "1.0",
-    "name": "👕 Oversize T-Shirt 3T2S",
-    "description": "Partial Coverage, Repeat [Ayr]",
-    "language": "en",
-    "slots": [
-        {
-            "slot_id": 1,
-            "mode": "Managed",
-            "group": "Torso",
-            "values": {
-                "size": 1.0,
-                "angle": 0.0,
-                "x_position": 0.386,
-                "y_position": 0.557,
-                "opacity": 1.0,
-                "h_flip": false,
-                "v_flip": false,
-                "h_repeat": false,
-                "v_repeat": false
-            }
-        },
-        {
-            "slot_id": 2,
-            "mode": "Managed",
-            "group": "Left Sleeve",
-            "values": {
-                "size": 1.0,
-                "angle": 0.0,
-                "x_position": 0.5,
-                "y_position": 0.45,
-                "opacity": 1.0,
-                "h_flip": false,
-                "v_flip": false,
-                "h_repeat": true,
-                "v_repeat": false
-            }
-        },
-        {
-            "slot_id": 3,
-            "mode": "Managed",
-            "group": "Torso",
-            "values": {
-                "size": 1.0,
-                "angle": 0.0,
-                "x_position": 0.636,
-                "y_position": 0.557,
-                "opacity": 1.0,
-                "h_flip": false,
-                "v_flip": false,
-                "h_repeat": false,
-                "v_repeat": false
-            }
-        },
-        {
-            "slot_id": 4,
-            "mode": "Managed",
-            "group": "Right Sleeve",
-            "values": {
-                "size": 1.0,
-                "angle": 0.0,
-                "x_position": 0.5,
-                "y_position": 0.45,
-                "opacity": 1.0,
-                "h_flip": false,
-                "v_flip": false,
-                "h_repeat": true,
-                "v_repeat": false
-            }
-        },
-        {
-            "slot_id": 0,
-            "mode": "Managed",
-            "group": "Torso",
-            "values": {
-                "size": 1.0,
-                "angle": 0.0,
-                "x_position": 0.636,
-                "y_position": 0.442,
-                "opacity": 1.0,
-                "h_flip": false,
-                "v_flip": false,
-                "h_repeat": true,
-                "v_repeat": false
-            }
-        }
-    ]
+  "version": "1.0",
+  "name": "👕 Oversize T-Shirt 3T2S",
+  "description": "Partial Coverage, Repeat [Ayr]",
+  "language": "en",
+  "slots": [
+    {
+      "slot_id": 0,
+      "mode": "Managed",
+      "group": "Torso",
+      "values": {
+        "size": 1.0,
+        "angle": 0.0,
+        "x_position": 0.636,
+        "y_position": 0.442,
+        "opacity": 1.0,
+        "h_flip": false,
+        "v_flip": false,
+        "h_repeat": true,
+        "v_repeat": false
+      }
+    },
+    {
+      "slot_id": 1,
+      "mode": "Managed",
+      "group": "Torso",
+      "values": {
+        "size": 1.0,
+        "angle": 0.0,
+        "x_position": 0.386,
+        "y_position": 0.557,
+        "opacity": 1.0,
+        "h_flip": false,
+        "v_flip": false,
+        "h_repeat": false,
+        "v_repeat": false
+      }
+    },
+    {
+      "slot_id": 2,
+      "mode": "Managed",
+      "group": "Left Sleeve",
+      "values": {
+        "size": 1.0,
+        "angle": 0.0,
+        "x_position": 0.5,
+        "y_position": 0.45,
+        "opacity": 1.0,
+        "h_flip": false,
+        "v_flip": false,
+        "h_repeat": true,
+        "v_repeat": false
+      }
+    },
+    {
+      "slot_id": 3,
+      "mode": "Managed",
+      "group": "Torso",
+      "values": {
+        "size": 1.0,
+        "angle": 0.0,
+        "x_position": 0.636,
+        "y_position": 0.557,
+        "opacity": 1.0,
+        "h_flip": false,
+        "v_flip": false,
+        "h_repeat": false,
+        "v_repeat": false
+      }
+    },
+    {
+      "slot_id": 4,
+      "mode": "Managed",
+      "group": "Right Sleeve",
+      "values": {
+        "size": 1.0,
+        "angle": 0.0,
+        "x_position": 0.5,
+        "y_position": 0.45,
+        "opacity": 1.0,
+        "h_flip": false,
+        "v_flip": false,
+        "h_repeat": true,
+        "v_repeat": false
+      }
+    }
+  ]
 }
